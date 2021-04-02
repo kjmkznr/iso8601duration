@@ -20,17 +20,18 @@ var (
 
 	tmpl = template.Must(template.New("duration").Parse(`P{{if .Years}}{{.Years}}Y{{end}}{{if .Weeks}}{{.Weeks}}W{{end}}{{if .Days}}{{.Days}}D{{end}}{{if .HasTimePart}}T{{end }}{{if .Hours}}{{.Hours}}H{{end}}{{if .Minutes}}{{.Minutes}}M{{end}}{{if .Seconds}}{{.Seconds}}S{{end}}`))
 
-	full = regexp.MustCompile(`P((?P<year>\d+)Y)?((?P<month>\d+)M)?((?P<day>\d+)D)?(T((?P<hour>\d+)H)?((?P<minute>\d+)M)?((?P<second>\d+)S)?)?`)
+	full = regexp.MustCompile(`P((?P<year>\d+)Y)?((?P<month>\d+)M)?((?P<day>\d+)D)?(T((?P<hour>\d+)H)?((?P<minute>\d+)M)?((?P<second>\d+)(.(?P<millisecond>\d+))?S)?)?`)
 	week = regexp.MustCompile(`P((?P<week>\d+)W)`)
 )
 
 type Duration struct {
-	Years   int
-	Weeks   int
-	Days    int
-	Hours   int
-	Minutes int
-	Seconds int
+	Years        int
+	Weeks        int
+	Days         int
+	Hours        int
+	Minutes      int
+	Seconds      int
+	MilliSeconds int
 }
 
 func FromString(dur string) (*Duration, error) {
@@ -76,6 +77,16 @@ func FromString(dur string) (*Duration, error) {
 			d.Minutes = val
 		case "second":
 			d.Seconds = val
+		case "millisecond":
+			if val < 10 {
+				d.MilliSeconds = val * 100
+			} else if val < 100 {
+				d.MilliSeconds = val * 10
+			} else if val < 1000 {
+				d.MilliSeconds = val
+			} else {
+				return nil, ErrBadFormat
+			}
 		default:
 			return nil, errors.New(fmt.Sprintf("unknown field %s", name))
 		}

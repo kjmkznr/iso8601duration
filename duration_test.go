@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	duration "github.com/channelmeter/iso8601duration"
+	duration "github.com/kjmkznr/iso8601duration"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,6 +27,22 @@ func TestFromString(t *testing.T) {
 	assert.Equal(t, 3, dur.Hours)
 	assert.Equal(t, 4, dur.Minutes)
 	assert.Equal(t, 5, dur.Seconds)
+
+	// test with millisecond string
+	dur, err = duration.FromString("PT5.678S")
+	assert.Nil(t, err)
+	assert.Equal(t, 5, dur.Seconds)
+	assert.Equal(t, 678, dur.MilliSeconds)
+
+	// test with millisecond string
+	dur, err = duration.FromString("PT5.6S")
+	assert.Nil(t, err)
+	assert.Equal(t, 5, dur.Seconds)
+	assert.Equal(t, 600, dur.MilliSeconds)
+
+	// test with bad format millisecond string
+	dur, err = duration.FromString("PT5.60000S")
+	assert.Equal(t, err, duration.ErrBadFormat)
 
 	// test with good week string
 	dur, err = duration.FromString("P1W")
